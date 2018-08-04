@@ -1,0 +1,1 @@
+Spring Boot server for Universal Contacts web application.
