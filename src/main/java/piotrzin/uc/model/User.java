@@ -1,35 +1,64 @@
 package piotrzin.uc.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {
+                "username"
+        }),
+        @UniqueConstraint(columnNames = {
+                "email"
+        })
+})
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@ToString
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-    @Column
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "user_generator")
+    @SequenceGenerator(name = "user_generator", sequenceName = "user_id_seq")
+    private Long id;
+
+    @NotBlank
+    @Size(max = 48)
+    private String name;
+
+    @NotBlank
+    @Size(max = 16)
     private String username;
-    @Column
+
+    @NaturalId
+    @NotBlank
+    @Size(max = 42)
+    @Email
+    private String email;
+
+    @NotBlank
+    @Size(max = 100)
     private String password;
 
-    @JsonIgnore
-    public String getPassword() {
-        return this.password;
-    }
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
-    @JsonProperty
-    public void setPassword(String password) {
+    public User(String name, String username, String email, String password) {
+        this.name = name;
+        this.username = username;
+        this.email = email;
         this.password = password;
     }
 }

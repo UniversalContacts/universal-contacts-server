@@ -3,84 +3,103 @@ package piotrzin.uc.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import piotrzin.uc.model.User;
-import piotrzin.uc.service.UserService;
-
-import javax.annotation.Resource;
+import piotrzin.uc.security.CustomAccessDeniedHandler;
+import piotrzin.uc.security.CustomUserDetailsService;
+import piotrzin.uc.security.JwtAuthenticationEntryPoint;
+import piotrzin.uc.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true
+)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final String[] permittedRoutes = {
-            "/token/*",
-            "/user/create"
-    };
-
-    @Resource(name = "userService")
-    private UserDetailsService userDetailsService;
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    @Override
     @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean(BeanIds.AUTHENTICATION_MANAGER)
+    @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
 
-    @Autowired
-    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(encoder());
-    }
-
-    @Bean
-    public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
-        return new JwtAuthenticationFilter();
-    }
-
-    @Autowired
-    private UserService userService;
-
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-
-//        userService.save(new User(0, "admin", "admin"));
-
-        auth.inMemoryAuthentication()
-                .withUser("admin").password("admin").roles("USER", "ADMIN");
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        authenticationManagerBuilder
+                .userDetailsService(customUserDetailsService)
+                .passwordEncoder(passwordEncoder());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable().
-                authorizeRequests()
-                .antMatchers("/admin").hasRole("ADMIN")
-                .antMatchers(permittedRoutes).permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
         http
-                .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+                .cors()
+                .and()
+                .csrf()
+                .disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedHandler)
+                .accessDeniedHandler(accessDeniedHandler())
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers("/",
+                        "/favicon.ico",
+                        "/**/*.png",
+                        "/**/*.gif",
+                        "/**/*.svg",
+                        "/**/*.jpg",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js")
+                .permitAll()
+                .antMatchers("/api/auth/**")
+                .permitAll()
+                .antMatchers("/api/user/checkUsernameAvailability\", \"/api/user/checkEmailAvailability")
+                .permitAll()
+                .antMatchers(HttpMethod.GET, "/api/users/**")
+                .permitAll()
+                .anyRequest().authenticated()
+                .and();
+
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-    @Bean
-    public BCryptPasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
-    }
 
 }
 
