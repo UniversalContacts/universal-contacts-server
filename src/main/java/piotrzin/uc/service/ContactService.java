@@ -1,7 +1,5 @@
 package piotrzin.uc.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import piotrzin.uc.entities.ContactRequest;
@@ -13,8 +11,6 @@ import piotrzin.uc.repository.UserRepository;
 
 @Service
 public class ContactService {
-
-    private static final Logger logger = LoggerFactory.getLogger(ContactService.class);
 
     @Autowired
     private ContactRepository contactRepository;
