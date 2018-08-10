@@ -1,7 +1,5 @@
 package piotrzin.uc.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +8,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import piotrzin.uc.entities.ApiResponse;
 import piotrzin.uc.entities.JwtAuthenticationResponse;
 import piotrzin.uc.entities.LoginRequest;
 import piotrzin.uc.entities.RegisterRequest;
-import piotrzin.uc.entities.ApiResponse;
 import piotrzin.uc.exception.ServerException;
 import piotrzin.uc.model.Role;
 import piotrzin.uc.model.RoleName;
@@ -27,13 +28,10 @@ import piotrzin.uc.security.JwtTokenProvider;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -53,11 +51,11 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return new ResponseEntity(new ApiResponse(false, "Username is already taken."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiResponse(false, "Username is already taken.", null), HttpStatus.CONFLICT);
         }
 
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return new ResponseEntity(new ApiResponse(false, "Email is already used."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiResponse(false, "Email is already used.", null), HttpStatus.CONFLICT);
         }
 
         User user = createUserFromRegisterRequest(registerRequest);
@@ -75,7 +73,7 @@ public class AuthenticationController {
                 .fromCurrentContextPath().path("/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
 
-        return ResponseEntity.created(location).body(new ApiResponse(true, "User registered successfully."));
+        return ResponseEntity.created(location).body(new ApiResponse(true, "User registered successfully.", result));
     }
 
     @PostMapping("/login")

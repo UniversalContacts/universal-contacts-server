@@ -10,4 +10,6 @@ import lombok.Setter;
 public class ApiResponse {
     private Boolean success;
     private String message;
+
+    private Object body;
 }

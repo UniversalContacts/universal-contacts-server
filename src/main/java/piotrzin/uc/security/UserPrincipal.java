@@ -2,17 +2,14 @@ package piotrzin.uc.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import piotrzin.uc.model.Role;
 import piotrzin.uc.model.User;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -32,6 +29,7 @@ public class UserPrincipal implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
+    @SuppressWarnings("WeakerAccess")
     public static UserPrincipal create(User user) {
         List<GrantedAuthority> authorities = user
                 .getRoles()

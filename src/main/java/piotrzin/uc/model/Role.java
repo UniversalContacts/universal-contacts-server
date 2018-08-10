@@ -26,4 +26,14 @@ public class Role {
     public Role(RoleName name) {
         this.name = name;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Role)) {
+            return false;
+        }
+
+        Role b = (Role) obj;
+        return b.getName().equals(name);
+    }
 }

@@ -2,7 +2,6 @@ package piotrzin.uc.entities;
 
 import lombok.Getter;
 import lombok.Setter;
-import piotrzin.uc.model.User;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
