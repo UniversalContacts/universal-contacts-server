@@ -6,7 +6,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import piotrzin.uc.entities.ContactRequest;
-import piotrzin.uc.entities.ContactsListResponse;
 import piotrzin.uc.exception.ResourceNotFoundException;
 import piotrzin.uc.model.Contact;
 import piotrzin.uc.repository.ContactRepository;
@@ -28,10 +27,10 @@ public class ContactController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/users/contacts")
-    public ResponseEntity<?> getAllContacts() {
+    public ResponseEntity<List<Contact>> getAllContacts() {
         List<Contact> contacts = contactRepository.findAll();
         if (contacts.size() > 0) {
-            return ResponseEntity.ok(new ContactsListResponse(contacts));
+            return ResponseEntity.ok(contacts);
         } else {
             return ResponseEntity.noContent().build();
         }
@@ -72,11 +71,11 @@ public class ContactController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/users/{userId}/contacts")
-    public ResponseEntity<?> getUserContacts(@PathVariable("userId") Long userId) {
+    public ResponseEntity<List<Contact>> getUserContacts(@PathVariable("userId") Long userId) {
         List<Contact> userContacts = contactRepository.findAllByUserId(userId);
 
         if (userContacts.size() > 0) {
-            return ResponseEntity.ok(new ContactsListResponse(userContacts));
+            return ResponseEntity.ok(userContacts);
         } else {
             return ResponseEntity.noContent().build();
         }

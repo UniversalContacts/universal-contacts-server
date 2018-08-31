@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import piotrzin.uc.entities.UsersListResponse;
 import piotrzin.uc.exception.ResourceNotFoundException;
 import piotrzin.uc.model.User;
 import piotrzin.uc.repository.UserRepository;
@@ -38,12 +37,12 @@ public class UserController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
 
         if (users.size() > 0) {
             logger.info("Found users list with " + users.size() + " users.");
-            return new ResponseEntity<>(new UsersListResponse(users), HttpStatus.OK);
+            return new ResponseEntity<>(users, HttpStatus.OK);
         } else {
             logger.error("No users found!");
             return ResponseEntity.noContent().build();
