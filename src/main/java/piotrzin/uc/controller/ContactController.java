@@ -25,12 +25,24 @@ public class ContactController {
     @Autowired
     private ContactService contactService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/contacts")
     public ResponseEntity<List<Contact>> getAllContacts() {
         List<Contact> contacts = contactRepository.findAll();
         if (contacts.size() > 0) {
             return ResponseEntity.ok(contacts);
+        } else {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/users/{userId}/contacts")
+    public ResponseEntity<List<Contact>> getUserContacts(@PathVariable("userId") Long userId) {
+        List<Contact> userContacts = contactRepository.findAllByUserId(userId);
+
+        if (userContacts.size() > 0) {
+            return ResponseEntity.ok(userContacts);
         } else {
             return ResponseEntity.noContent().build();
         }
@@ -67,18 +79,6 @@ public class ContactController {
         contactRepository.save(result);
 
         return ResponseEntity.ok(result);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/users/{userId}/contacts")
-    public ResponseEntity<List<Contact>> getUserContacts(@PathVariable("userId") Long userId) {
-        List<Contact> userContacts = contactRepository.findAllByUserId(userId);
-
-        if (userContacts.size() > 0) {
-            return ResponseEntity.ok(userContacts);
-        } else {
-            return ResponseEntity.noContent().build();
-        }
     }
 
     @PreAuthorize("hasRole('USER')")

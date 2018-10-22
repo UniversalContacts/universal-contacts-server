@@ -15,6 +15,9 @@ import piotrzin.uc.model.User;
 import piotrzin.uc.repository.RoleRepository;
 import piotrzin.uc.repository.UserRepository;
 
+import java.util.List;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api")
 public class RoleController {
@@ -27,8 +30,13 @@ public class RoleController {
     @Autowired
     private RoleRepository roleRepository;
 
+    @GetMapping("/users/{userId}/roles")
+    public ResponseEntity<Set<Role>> getUserRolesByUserId(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId)).getRoles());
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/users/{userId}/roles/")
+    @PutMapping("/users/{userId}/roles")
     public ResponseEntity<?> grantUserRole(@PathVariable("userId") Long userId,
                                            @RequestBody RoleRequest roleRequest) {
         RoleName roleName;
@@ -61,14 +69,14 @@ public class RoleController {
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.ROLE_USER));
 
         if (roleId.equals(mandatoryRole.getId())) {
-            throw new ServerException("Cannot remove the mandatory 'USER_ROLE'.");
+            throw new ServerException("Cannot remove the mandatory role 'ROLE_USER'.");
         }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         Role toRemove = null;
-        for (Role userRole: user.getRoles()) {
+        for (Role userRole : user.getRoles()) {
             if (userRole.getId().equals(roleId)) {
                 toRemove = userRole;
                 break;
@@ -82,5 +90,4 @@ public class RoleController {
 
         return ResponseEntity.ok(user);
     }
-
 }

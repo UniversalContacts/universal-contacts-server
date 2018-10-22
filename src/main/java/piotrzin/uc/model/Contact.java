@@ -18,8 +18,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 public class Contact {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "contact_generator")
-    @SequenceGenerator(name = "contact_generator", sequenceName = "contact_id_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank

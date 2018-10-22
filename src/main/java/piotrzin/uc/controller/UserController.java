@@ -17,7 +17,7 @@ import piotrzin.uc.security.UserPrincipal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -25,18 +25,19 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/users/is-username-available")
-    public Boolean isUsernameAvailable(@RequestParam(value = "username") String username) {
+    @GetMapping("/is-username-available/{username}")
+    public Boolean isUsernameAvailable(@PathVariable(name = "username") String username) {
         return !userRepository.existsByUsername(username);
     }
 
-    @GetMapping("/users/is-email-available")
-    public Boolean isEmailAvailable(@RequestParam(value = "email") String email) {
+    @GetMapping("/is-email-available/{email}")
+    public Boolean isEmailAvailable(@PathVariable(name = "email") String email) {
         return !userRepository.existsByEmail(email);
     }
 
+
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/users")
+    @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
 
@@ -50,7 +51,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/users/me")
+    @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(@CurrentUser UserPrincipal currentUser) {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found!"));
@@ -59,7 +60,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -69,7 +70,7 @@ public class UserController {
 
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable("id") Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -80,7 +81,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/users/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<User> updateUserById(@PathVariable("id") Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
